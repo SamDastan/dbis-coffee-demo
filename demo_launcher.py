@@ -137,6 +137,7 @@ if __name__ == "__main__":
         y, dates = df[ingredient].values, df['date']
 
         alpha = float(input(f"{CYAN}Enter Alpha (0.1 - 0.9): {RESET}"))
+        horizon = int(input(f"{CYAN}Enter forecast horizon in days (e.g. 7): {RESET}"))
 
         smoothed = run_ses(y, alpha)
         forecast_val = smoothed[-1]
@@ -155,9 +156,9 @@ if __name__ == "__main__":
         ax1.legend()
 
         # Plot 2: Future
-        future_dates = pd.date_range(dates.iloc[-1], periods=8)[1:]
+        future_dates = pd.date_range(dates.iloc[-1], periods=horizon + 1)[1:]
         ax2.plot(dates[-30:], y[-30:], label="Recent History", color='blue') # Show last 30 days for clarity
-        ax2.plot(future_dates, [forecast_val]*7, color='red', marker='o', label='7-Day Forecast')
+        ax2.plot(future_dates, [forecast_val] * horizon, color='red', marker='o', label=f'{horizon}-Day Forecast')
 
         # Add numerical label to plot
         ax2.text(future_dates[0], forecast_val, f'  {forecast_val:.1f} {unit}', color='red', fontweight='bold')
