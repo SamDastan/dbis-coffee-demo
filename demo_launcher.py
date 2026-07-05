@@ -8,7 +8,7 @@ def bootstrap():
     print("[setup] installing packages")
     packages = ["numpy", "pandas", "matplotlib", "tinydb", "psycopg2-binary"]
     for package in packages:
-        subprocess.check_call([sys.executable, "-m", "pip", "install", "--upgrade", "--force-reinstall", "--no-cache-dir", package])
+       subprocess.check_call([sys.executable, "-m", "pip", "install", "--break-system-packages", package])
 
 if __name__ == "__main__":
     bootstrap()
