@@ -133,6 +133,9 @@ if __name__ == "__main__":
     demo_code = """
 import pandas as pd
 import matplotlib.pyplot as plt
+import os
+import sys
+import subprocess
 
 BOLD = "\\033[1m"
 RESET = "\\033[0m"
@@ -200,7 +203,21 @@ if __name__ == "__main__":
         ax2.set_xlabel("Date")
         ax2.set_ylabel(f"{ingredient} usage ({unit})")
         ax2.legend()
-        plt.show()
+
+        filename = "coffee_forecast.png"
+        plt.savefig(filename)
+        plt.close(fig)
+        print(f"{CYAN}Saved plot to {filename}{RESET}")
+
+        try:
+            if sys.platform == "darwin":
+                subprocess.run(["open", filename])
+            elif sys.platform.startswith("linux"):
+                subprocess.run(["xdg-open", filename])
+            else:
+                os.startfile(filename)
+        except Exception:
+            print(f"{YELLOW}Could not open the image automatically. Open {filename} manually.{RESET}")
 
         again = input(f"{YELLOW}Run another forecast? (y/n): {RESET}").strip().lower()
         print()
