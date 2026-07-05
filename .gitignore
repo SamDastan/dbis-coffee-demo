@@ -5,3 +5,4 @@ __pycache__/
 node_modules/
 *.db
 dis_uebung1.zip
+.DS_Store
