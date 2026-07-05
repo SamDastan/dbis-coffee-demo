@@ -95,43 +95,49 @@ if __name__ == "__main__":
     df = pd.read_csv('usage_prepped.csv', parse_dates=['date'])
 
     print("[demo] forecast playground")
-    print("Available ingredients: 1) Milk  2) Sugar")
-    choice = input("Choose ingredient (1 or 2): ").strip()
-    ingredient = "Sugar" if choice == "2" else "Milk"
-    unit = "ml" if ingredient == "Milk" else "g"
+    while True:
+        print("Available ingredients: 1) Milk  2) Sugar")
+        choice = input("Choose ingredient (1 or 2): ").strip()
+        ingredient = "Sugar" if choice == "2" else "Milk"
+        unit = "ml" if ingredient == "Milk" else "g"
 
-    y, dates = df[ingredient].values, df['date']
+        y, dates = df[ingredient].values, df['date']
 
-    alpha = float(input("Enter Alpha (0.1 - 0.9): "))
+        alpha = float(input("Enter Alpha (0.1 - 0.9): "))
 
-    smoothed = run_ses(y, alpha)
-    forecast_val = smoothed[-1]
+        smoothed = run_ses(y, alpha)
+        forecast_val = smoothed[-1]
 
-    print(f"[result] forecast: {forecast_val:.2f} {unit} per day")
+        print(f"[result] forecast: {forecast_val:.2f} {unit} per day")
 
-    fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(10, 8))
-    plt.subplots_adjust(hspace=0.4)
+        fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(10, 8))
+        plt.subplots_adjust(hspace=0.4)
 
-    # Plot 1: Evaluation
-    split = int(len(y) * 0.8)
-    ax1.plot(dates[split:], y[split:], label="Actual", color='green')
-    ax1.plot(dates[split:], smoothed[split-1:-1], label="Prediction", color='orange', ls='--')
-    ax1.set_title(f"{ingredient} Evaluation (Alpha {alpha})")
-    ax1.set_ylabel(f"{ingredient} usage ({unit})")
-    ax1.legend()
+        # Plot 1: Evaluation
+        split = int(len(y) * 0.8)
+        ax1.plot(dates[split:], y[split:], label="Actual", color='green')
+        ax1.plot(dates[split:], smoothed[split-1:-1], label="Prediction", color='orange', ls='--')
+        ax1.set_title(f"{ingredient} Evaluation (Alpha {alpha})")
+        ax1.set_ylabel(f"{ingredient} usage ({unit})")
+        ax1.legend()
 
-    # Plot 2: Future
-    future_dates = pd.date_range(dates.iloc[-1], periods=8)[1:]
-    ax2.plot(dates[-30:], y[-30:], label="Recent History", color='blue') # Show last 30 days for clarity
-    ax2.plot(future_dates, [forecast_val]*7, color='red', marker='o', label='7-Day Forecast')
+        # Plot 2: Future
+        future_dates = pd.date_range(dates.iloc[-1], periods=8)[1:]
+        ax2.plot(dates[-30:], y[-30:], label="Recent History", color='blue') # Show last 30 days for clarity
+        ax2.plot(future_dates, [forecast_val]*7, color='red', marker='o', label='7-Day Forecast')
 
-    # Add numerical label to plot
-    ax2.text(future_dates[0], forecast_val, f'  {forecast_val:.1f} {unit}', color='red', fontweight='bold')
+        # Add numerical label to plot
+        ax2.text(future_dates[0], forecast_val, f'  {forecast_val:.1f} {unit}', color='red', fontweight='bold')
 
-    ax2.set_title(f"{ingredient} Future Demand Plot")
-    ax2.set_ylabel(f"{ingredient} usage ({unit})")
-    ax2.legend()
-    plt.show()
+        ax2.set_title(f"{ingredient} Future Demand Plot")
+        ax2.set_ylabel(f"{ingredient} usage ({unit})")
+        ax2.legend()
+        plt.show()
+
+        again = input("Run another forecast? (y/n): ").strip().lower()
+        if again != "y":
+            print("[demo] done")
+            break
     """
     with open('demo.py', 'w') as f:
         f.write(demo_code.strip())
