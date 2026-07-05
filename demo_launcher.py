@@ -8,7 +8,7 @@ def bootstrap():
     print("[setup] installing packages")
     packages = ["numpy", "pandas", "matplotlib", "tinydb", "psycopg2-binary"]
     for package in packages:
-       subprocess.check_call([sys.executable, "-m", "pip", "install", "--break-system-packages", package])
+        subprocess.check_call([sys.executable, "-m", "pip", "install", "--upgrade", "--force-reinstall", "--no-cache-dir", package])
 
 if __name__ == "__main__":
     bootstrap()
@@ -75,6 +75,33 @@ if __name__ == "__main__":
     tdb.truncate()
     with open('coffee_recipes.json', 'r') as f:
         tdb.insert_multiple(json.load(f)['recipes'])
+
+    # coffee_recipes.json only contains the original 6 recipes. Espresso and
+    # Cappuccino appear in the sales data but were missing from the initial
+    # catalog (see update_db.py); they are added here so no sale is silently
+    # dropped for lacking a matching recipe.
+    tdb.insert_multiple([
+        {
+            "id": "espresso",
+            "name": "Espresso",
+            "category": "Espresso",
+            "time_minutes": 2,
+            "servings": 1,
+            "ingredients": [{"item": "Coffee beans", "amount": 18, "unit": "g"}],
+            "equipment": ["Espresso machine"],
+            "steps": ["Grind beans", "Brew 30ml shot"],
+        },
+        {
+            "id": "cappuccino",
+            "name": "Cappuccino",
+            "category": "Cappuccino",
+            "time_minutes": 6,
+            "servings": 1,
+            "ingredients": [{"item": "Espresso", "amount": 1, "unit": "shot"}, {"item": "Milk", "amount": 150, "unit": "ml"}],
+            "equipment": ["Espresso machine", "Steam wand"],
+            "steps": ["Brew espresso", "Steam milk to thick foam", "Pour over espresso"],
+        },
+    ])
 
     cur.execute("SELECT coffee_name, date FROM sales ORDER BY date")
     sales = cur.fetchall()
