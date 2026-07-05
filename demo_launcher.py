@@ -174,23 +174,30 @@ if __name__ == "__main__":
         fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(10, 8))
         plt.subplots_adjust(hspace=0.4)
 
-        # Plot 1: Evaluation
+        # Plot 1: Evaluation (matches main.py's create_evaluation_plot exactly:
+        # full training history, actual test data, and the one-step-ahead forecast)
         split = int(len(y) * 0.8)
-        ax1.plot(dates[split:], y[split:], label="Actual", color='green')
-        ax1.plot(dates[split:], smoothed[split-1:-1], label="Prediction", color='orange', ls='--')
-        ax1.set_title(f"{ingredient} Evaluation (Alpha {alpha})")
+        train_dates, test_dates = dates[:split], dates[split:]
+        train_values, test_values = y[:split], y[split:]
+        forecasted_test_values = smoothed[split - 1:-1]
+
+        ax1.plot(train_dates, train_values, label="Training data")
+        ax1.plot(test_dates, test_values, label="Actual test data")
+        ax1.plot(test_dates, forecasted_test_values, label="Forecasted test data", marker="o")
+        ax1.set_title(f"Evaluation forecast for {ingredient}, Single Exponential Smoothing, alpha = {alpha}")
+        ax1.set_xlabel("Date")
         ax1.set_ylabel(f"{ingredient} usage ({unit})")
         ax1.legend()
 
-        # Plot 2: Future
+        # Plot 2: Future (matches main.py's create_future_plot exactly:
+        # the full original series plus the forecast appended at the end)
         future_dates = pd.date_range(dates.iloc[-1], periods=horizon + 1)[1:]
-        ax2.plot(dates[-30:], y[-30:], label="Recent History", color='blue') # Show last 30 days for clarity
-        ax2.plot(future_dates, [forecast_val] * horizon, color='red', marker='o', label=f'{horizon}-Day Forecast')
+        future_values = [forecast_val] * horizon
 
-        # Add numerical label to plot
-        ax2.text(future_dates[0], forecast_val, f'  {forecast_val:.1f} {unit}', color='red', fontweight='bold')
-
-        ax2.set_title(f"{ingredient} Future Demand Plot")
+        ax2.plot(dates, y, label="Original data")
+        ax2.plot(future_dates, future_values, label="Forecasted future data", marker="o")
+        ax2.set_title(f"{ingredient} usage forecast with Single Exponential Smoothing, alpha = {alpha}")
+        ax2.set_xlabel("Date")
         ax2.set_ylabel(f"{ingredient} usage ({unit})")
         ax2.legend()
         plt.show()
