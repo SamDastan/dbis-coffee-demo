@@ -14,17 +14,39 @@ if __name__ == "__main__":
     bootstrap()
     import pandas as pd
     import psycopg2
+    from psycopg2 import sql
     from tinydb import TinyDB
+
+    PGHOST = os.environ.get("PGHOST", "localhost")
+    PGUSER = os.environ.get("PGUSER", "postgres")
+    PGPASSWORD = os.environ.get("PGPASSWORD", "")
+    PGPORT = os.environ.get("PGPORT", "5432")
+    PGDATABASE = os.environ.get("PGDATABASE", "coffee_forecasting")
+
+    print("[setup] checking database exists")
+    # Connect to the default 'postgres' database first, since the target
+    # database may not exist yet on a fresh PostgreSQL install.
+    admin_conn = psycopg2.connect(
+        dbname="postgres", user=PGUSER, password=PGPASSWORD, host=PGHOST, port=PGPORT,
+    )
+    admin_conn.autocommit = True
+    admin_cur = admin_conn.cursor()
+    admin_cur.execute("SELECT 1 FROM pg_database WHERE datname = %s", (PGDATABASE,))
+    if admin_cur.fetchone() is None:
+        admin_cur.execute(sql.SQL("CREATE DATABASE {}").format(sql.Identifier(PGDATABASE)))
+        print(f"[setup] created database '{PGDATABASE}'")
+    admin_cur.close()
+    admin_conn.close()
 
     print("[setup] connecting to postgres")
     # Connection settings can be overridden with environment variables,
     # so this runs on whoever's machine is presenting without editing code.
     conn = psycopg2.connect(
-        dbname=os.environ.get("PGDATABASE", "coffee_forecasting"),
-        user=os.environ.get("PGUSER", "postgres"),
-        password=os.environ.get("PGPASSWORD", ""),
-        host=os.environ.get("PGHOST", "localhost"),
-        port=os.environ.get("PGPORT", "5432"),
+        dbname=PGDATABASE,
+        user=PGUSER,
+        password=PGPASSWORD,
+        host=PGHOST,
+        port=PGPORT,
     )
     cur = conn.cursor()
 
@@ -85,6 +107,12 @@ if __name__ == "__main__":
 import pandas as pd
 import matplotlib.pyplot as plt
 
+BOLD = "\\033[1m"
+RESET = "\\033[0m"
+CYAN = "\\033[96m"
+GREEN = "\\033[92m"
+YELLOW = "\\033[93m"
+
 def run_ses(values, alpha):
     smoothed = [values[0]]
     for i in range(1, len(values)):
@@ -94,21 +122,26 @@ def run_ses(values, alpha):
 if __name__ == "__main__":
     df = pd.read_csv('usage_prepped.csv', parse_dates=['date'])
 
-    print("[demo] forecast playground")
+    print(f"{BOLD}{CYAN}")
+    print("=" * 42)
+    print("   Coffee Ingredient Forecast Playground")
+    print("=" * 42)
+    print(f"{RESET}")
+
     while True:
-        print("Available ingredients: 1) Milk  2) Sugar")
-        choice = input("Choose ingredient (1 or 2): ").strip()
+        print(f"{BOLD}Available ingredients:{RESET} 1) Milk   2) Sugar")
+        choice = input(f"{CYAN}Choose ingredient (1 or 2): {RESET}").strip()
         ingredient = "Sugar" if choice == "2" else "Milk"
         unit = "ml" if ingredient == "Milk" else "g"
 
         y, dates = df[ingredient].values, df['date']
 
-        alpha = float(input("Enter Alpha (0.1 - 0.9): "))
+        alpha = float(input(f"{CYAN}Enter Alpha (0.1 - 0.9): {RESET}"))
 
         smoothed = run_ses(y, alpha)
         forecast_val = smoothed[-1]
 
-        print(f"[result] forecast: {forecast_val:.2f} {unit} per day")
+        print(f"{GREEN}{BOLD}[result]{RESET}{GREEN} forecast: {forecast_val:.2f} {unit} per day{RESET}\\n")
 
         fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(10, 8))
         plt.subplots_adjust(hspace=0.4)
@@ -134,9 +167,10 @@ if __name__ == "__main__":
         ax2.legend()
         plt.show()
 
-        again = input("Run another forecast? (y/n): ").strip().lower()
+        again = input(f"{YELLOW}Run another forecast? (y/n): {RESET}").strip().lower()
+        print()
         if again != "y":
-            print("[demo] done")
+            print(f"{BOLD}{CYAN}Thanks for trying the forecast playground!{RESET}")
             break
     """
     with open('demo.py', 'w') as f:
