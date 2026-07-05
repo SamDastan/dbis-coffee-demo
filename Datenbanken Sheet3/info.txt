@@ -1,0 +1,14 @@
+Forecasting algorithm:
+Single Exponential Smoothing
+
+User-changeable parameters:
+ingredient
+alpha
+forecast horizon
+
+Forecasted ingredients:
+Milk
+Sugar
+
+Assumption:
+For the recipe Cocoa, the ingredient choice “Milk or water” is treated as Milk.
